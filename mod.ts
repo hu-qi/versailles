@@ -1,5 +1,5 @@
 #!/usr/bin/env -S deno run --unstable --allow-net --allow-read
-import { serve } from "https://deno.land/std/http/server.ts";
+import { Application } from "https://deno.land/x/abc@v1.2.4/mod.ts";
 import createHtml from "./createHtml.ts";
 
 const file = await Deno.open("data.txt", { read: true });
@@ -12,10 +12,16 @@ const content = decoder.decode(data).trim();
 const words = content.split("\n");
 const count = words.length;
 
-const server = serve({ port: 8000 });
+const app = new Application();
 
-for await (const req of server) {
-  const index = Math.ceil(Math.random() * count - 1);
-  const body = createHtml(words[index]);
-  req.respond({ body });
-}
+app.static("/assets", "./assets");
+
+app
+  .get("/", (c) => {
+    const index = Math.floor(Math.random() * count);
+    const body = createHtml(words[index]);
+    return body
+  })
+  .start({ port: 8000 });
+
+console.log(`🦕 abc server running at http://127.0.0.1:8000/ 🦕`);
